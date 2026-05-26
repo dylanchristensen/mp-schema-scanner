@@ -12,6 +12,7 @@ inline. Bundled examples can be loaded with one click.
 """
 from __future__ import annotations
 import os
+import sys
 import tempfile
 import traceback
 
@@ -19,37 +20,83 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 
 from scanner import scan
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-EXAMPLES_DIR = os.path.join(HERE, "examples")
 
-app = Flask(__name__)
+# Path resolution: behave correctly whether running as a script
+# (python app.py) or as a frozen PyInstaller --onefile bundle.
+#   - In frozen mode, templates/static/examples that we bundled live
+#     under sys._MEIPASS (the temp extraction dir).
+#   - We *also* look for an examples/ folder alongside the .exe so end
+#     users can drop their own .mp/.gry files there without rebuilding.
+def _resource_root() -> str:
+    if getattr(sys, "frozen", False):
+        return sys._MEIPASS  # type: ignore[attr-defined]
+    return os.path.dirname(os.path.abspath(__file__))
+
+
+def _example_search_dirs() -> list[str]:
+    if getattr(sys, "frozen", False):
+        beside_exe = os.path.join(
+            os.path.dirname(sys.executable), "examples"
+        )
+        bundled = os.path.join(sys._MEIPASS, "examples")  # type: ignore[attr-defined]
+        return [d for d in (beside_exe, bundled) if os.path.isdir(d)]
+    return [os.path.join(_resource_root(), "examples")]
+
+
+HERE = _resource_root()
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(HERE, "templates"),
+    static_folder=os.path.join(HERE, "static"),
+)
 app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024  # 1 GB upload cap
 
 
 # Examples discovery ---------------------------------------------------
 
 def _list_examples():
-    """Pair every example .mp with .gry files for the same model."""
-    if not os.path.isdir(EXAMPLES_DIR):
-        return []
-    files = os.listdir(EXAMPLES_DIR)
-    schemas = sorted(f for f in files if f.endswith(".mp"))
+    """Pair every example .mp with .gry files for the same model.
+
+    Walks every directory returned by _example_search_dirs(). Earlier
+    dirs win on name collisions, so a user .mp in beside-exe examples/
+    shadows a bundled one of the same name.
+    """
+    schemas: dict[str, str] = {}
+    traces: dict[str, str] = {}
+    for d in _example_search_dirs():
+        for f in os.listdir(d):
+            full = os.path.join(d, f)
+            if f.endswith(".mp") and f not in schemas:
+                schemas[f] = full
+            elif f.endswith(".gry") and f not in traces:
+                traces[f] = full
+
     out = []
-    for s in schemas:
+    for s, s_path in sorted(schemas.items()):
         stem = s[:-3]
-        gry = sorted(
-            f for f in files
-            if f.endswith(".gry") and f.startswith(stem.split("_")[0])
+        matching = sorted(
+            (g, t_path) for g, t_path in traces.items()
+            if g.startswith(stem.split("_")[0])
         )
         out.append({
             "schema": s,
-            "schema_path": os.path.join(EXAMPLES_DIR, s),
+            "schema_path": s_path,
             "traces": [
-                {"name": g, "path": os.path.join(EXAMPLES_DIR, g)}
-                for g in gry
+                {"name": g, "path": t_path} for g, t_path in matching
             ],
         })
     return out
+
+
+def _find_example(name: str) -> str | None:
+    """Resolve an example filename against the search dirs."""
+    name = os.path.basename(name)
+    for d in _example_search_dirs():
+        cand = os.path.join(d, name)
+        if os.path.isfile(cand):
+            return cand
+    return None
 
 
 # Candidate -> JSON ----------------------------------------------------
@@ -122,11 +169,13 @@ def api_scan():
             f.save(schema_path)
             tmpfiles.append(schema_path)
         elif request.form.get("example_schema"):
-            name = os.path.basename(request.form["example_schema"])
-            cand = os.path.join(EXAMPLES_DIR, name)
-            if not os.path.isfile(cand):
-                return jsonify({"error": f"example schema not found: {name}"}), 400
-            schema_path = cand
+            name = request.form["example_schema"]
+            resolved = _find_example(name)
+            if resolved is None:
+                return jsonify(
+                    {"error": f"example schema not found: {name}"}
+                ), 400
+            schema_path = resolved
         else:
             return jsonify({"error": "no schema provided"}), 400
 
@@ -138,10 +187,9 @@ def api_scan():
             f.save(gry_path)
             tmpfiles.append(gry_path)
         elif request.form.get("example_traces"):
-            name = os.path.basename(request.form["example_traces"])
-            cand = os.path.join(EXAMPLES_DIR, name)
-            if os.path.isfile(cand):
-                gry_path = cand
+            resolved = _find_example(request.form["example_traces"])
+            if resolved is not None:
+                gry_path = resolved
 
         schema, cands = scan(schema_path, gry_path)
         # Sort Shape B with cross-ROOT shared-token first (matches CLI).
@@ -175,5 +223,54 @@ def static_files(filename):
     return send_from_directory(os.path.join(HERE, "static"), filename)
 
 
+# Launcher: standalone mode -------------------------------------------
+
+def _pick_free_port(preferred: int = 5000) -> int:
+    """Return preferred if free, else any free port the OS picks."""
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        try:
+            s.bind(("127.0.0.1", preferred))
+            return preferred
+        except OSError:
+            pass
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+def _open_browser(url: str, delay: float = 0.8) -> None:
+    """Open the user's default browser to `url` after a short delay
+    (gives the server time to bind)."""
+    import threading
+    import webbrowser
+
+    def _go():
+        try:
+            webbrowser.open_new(url)
+        except Exception:
+            pass
+
+    t = threading.Timer(delay, _go)
+    t.daemon = True
+    t.start()
+
+
+def main() -> None:
+    port = _pick_free_port(5000)
+    url = f"http://127.0.0.1:{port}"
+    print(f"MP Schema Gap Scanner")
+    print(f"  serving on {url}")
+    print(f"  press Ctrl+C to quit")
+    _open_browser(url)
+    # Prefer waitress (production-quality, no dev warnings) when
+    # available; fall back to Flask dev server otherwise.
+    try:
+        from waitress import serve
+        serve(app, host="127.0.0.1", port=port, threads=4, _quiet=True)
+    except ImportError:
+        app.run(host="127.0.0.1", port=port, debug=False)
+
+
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    main()

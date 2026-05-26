@@ -28,3 +28,9 @@ report.md
 # Flask / uploads
 instance/
 uploads/
+
+# PyInstaller build output
+build/
+dist/
+*.manifest
+

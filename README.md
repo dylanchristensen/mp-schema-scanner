@@ -27,6 +27,20 @@ they are **suggested REJECT rules for the schema author to triage**.
 
 ## Quick start
 
+### Option A -- standalone Windows binary (recommended for end users)
+
+No Python needed. Grab `mp-scanner.exe` from the latest build (or
+build it yourself, see below), double-click it. A console window
+appears with the URL it is serving on; your default browser opens to
+the UI automatically.
+
+To include your own schemas/traces in the **Examples** list, create
+an `examples\` folder *next to* `mp-scanner.exe` and drop `.mp` and
+`.gry` files in there. Bundled examples remain available; same-named
+files beside the exe win.
+
+### Option B -- Python source
+
 ```bash
 pip install -r requirements.txt
 
@@ -41,8 +55,20 @@ python scanner.py examples/healthcareDelivery_corrected.mp \
 
 # Web UI:
 python app.py
-# then open http://localhost:5000
+# (auto-opens browser to a free port, usually http://127.0.0.1:5000)
 ```
+
+### Building the standalone binary
+
+```powershell
+# Windows PowerShell, from the repo root:
+pip install -r requirements-dev.txt
+.\build.ps1
+# -> dist\mp-scanner.exe  (~17 MB, single file)
+```
+
+The build pulls in Flask, waitress, and the project's modules with
+PyInstaller's `--onefile` mode (configured via `mp-scanner.spec`).
 
 ## Web UI
 
@@ -63,7 +89,7 @@ no auth, and is intended to be run on the analyst's own machine.
 
 ```
 mp-schema-scanner/
-  app.py                  # Flask web app
+  app.py                  # Flask web app + standalone launcher
   scanner.py              # CLI entrypoint, JSON wiring
   schema_parser.py        # parses .mp files into a Schema dataclass
   symbolic_detector.py    # Shape A/B/C detectors
@@ -74,7 +100,10 @@ mp-schema-scanner/
     healthcareDelivery_scope_1.gry      # constrained traces (36)
     healthcareDelivery_scope_2.gry      # unconstrained traces (676)
     Smart_Home_Energy_Composed.mp       # draft SoS schema
+  mp-scanner.spec         # PyInstaller bundle config
+  build.ps1               # one-shot build script
   requirements.txt
+  requirements-dev.txt
   .gitignore
 ```
 
@@ -123,7 +152,9 @@ CLI prototype.
 - Statistical (lift-based) Signal 3 detector folded in as a fourth
   section.
 - JSON output mode for the CLI.
-- Optional packaging as a single executable for non-Python users.
+- GitHub Actions release workflow that builds the .exe on tag push
+  and attaches it to a release, so teammates can grab the binary
+  without ever cloning the repo.
 
 ## License
 
