@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local artifacts
+*.db
+*.sqlite
+*.log
+report.md
+*_scan_report.md
+
+# Large trace files (keep small bundled ones under examples/)
+*.gry
+!examples/*.gry
+
+# Flask / uploads
+instance/
+uploads/

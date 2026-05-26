@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>MP Schema Gap Scanner</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>MP Schema Gap Scanner</h1>
+  <p class="tagline">
+    Load a Monterey Phoenix schema (and optionally a Gryphon trace
+    file) to surface candidate REJECT rules the schema is missing.
+  </p>
+</header>
+
+<main>
+  <section class="card" id="inputs">
+    <h2>Inputs</h2>
+
+    <div class="dropzone-row">
+      <label class="dropzone" id="schema-drop">
+        <span class="dz-title">Schema</span>
+        <span class="dz-hint">.mp file (required)</span>
+        <span class="dz-filename" id="schema-name">no file</span>
+        <input type="file" id="schema-file" accept=".mp,.txt" hidden>
+      </label>
+
+      <label class="dropzone" id="traces-drop">
+        <span class="dz-title">Traces</span>
+        <span class="dz-hint">.gry file (optional)</span>
+        <span class="dz-filename" id="traces-name">no file</span>
+        <input type="file" id="traces-file" accept=".gry,.json" hidden>
+      </label>
+    </div>
+
+    {% if examples %}
+    <div class="examples">
+      <h3>Or load a bundled example:</h3>
+      <div class="example-list">
+        {% for ex in examples %}
+          <div class="example">
+            <code>{{ ex.schema }}</code>
+            {% if ex.traces %}
+              {% for tr in ex.traces %}
+                <button
+                  class="example-btn"
+                  data-schema="{{ ex.schema }}"
+                  data-traces="{{ tr.name }}">
+                  with {{ tr.name }}
+                </button>
+              {% endfor %}
+            {% else %}
+              <button
+                class="example-btn"
+                data-schema="{{ ex.schema }}"
+                data-traces="">
+                schema only
+              </button>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="actions">
+      <button id="run-btn" class="primary">Scan</button>
+      <span id="status" class="status"></span>
+    </div>
+  </section>
+
+  <section class="card hidden" id="results">
+    <h2>Results</h2>
+    <div id="summary"></div>
+    <div id="findings"></div>
+  </section>
+
+  <section class="card hidden" id="error-panel">
+    <h2>Error</h2>
+    <pre id="error-text"></pre>
+  </section>
+</main>
+
+<footer>
+  <p>
+    NSA INSuRE+C &middot; Summer 2026 &middot;
+    <a href="https://github.com" target="_blank">mp-schema-scanner</a>
+  </p>
+</footer>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
