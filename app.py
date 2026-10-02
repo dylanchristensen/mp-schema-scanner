@@ -8,7 +8,9 @@ Run locally:
 The web UI accepts a Monterey Phoenix schema (.mp) plus an optional
 Gryphon trace file (.gry), runs the symbolic gap detectors (Shapes
 A / B / C), and renders the candidate findings with trace evidence
-inline. Bundled examples can be loaded with one click.
+inline. Bundled examples can be loaded with one click. It also builds
+the Implicit Assumption Graph (explicit edges from the schema + implicit
+edges discovered via the SME agent over flagged trace patterns).
 """
 from __future__ import annotations
 import os
@@ -19,6 +21,16 @@ import traceback
 from flask import Flask, request, jsonify, render_template, send_from_directory
 
 from scanner import scan
+from assumption_graph import (
+    build as build_iag,
+    parse_sme_verdict,
+    implicit_edges_from_verdict,
+)
+
+# OpenRouter key: read from the OPENROUTER_API_KEY environment variable if
+# set. Otherwise the user enters a key in the UI. Never hardcode a key here;
+# a literal ends up inside the PyInstaller exe and is trivially extractable.
+_DEFAULT_OR_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 
 
 # Path resolution: behave correctly whether running as a script
@@ -216,6 +228,163 @@ def api_scan():
                 os.remove(p)
             except OSError:
                 pass
+
+
+# --- SME agent -------------------------------------------------------- #
+
+def _sme_system_prompt(domain: str) -> str:
+    return f"""You are a senior Subject Matter Expert (SME) and systems architect specializing in {domain}.
+
+Your task is to review execution traces from an architecture model of a System of Systems (SoS) and adjudicate anomalies flagged by automated analysis.
+
+For each flagged trace I provide, you must use your domain expertise to analyze the physical, operational, and logical realities of the system, and classify the trace into exactly one of the following three categories:
+
+**1. Modeling Gap (The model is wrong/incomplete)**
+*   **Definition:** The trace represents a physical or operational impossibility that the system designer clearly intended to forbid, but simply forgot to encode as a constraint in the model.
+*   **Action:** Recommend a new explicit REJECT rule to fix the model.
+
+**2. Missing Assumption (A genuine but undocumented dependency)**
+*   **Definition:** The trace is technically possible given the physical architecture, but it violates an unwritten assumption that one component holds about another.
+*   **Action:** Formulate an "Implicit Assumption Edge" in the format: [State X] -> [State Y]
+
+**3. Genuine Emergent Behavior (An SoS Weird Machine)**
+*   **Definition:** The trace is a completely valid composition of locally legitimate behaviors that chain together to violate global intent.
+*   **Action:** Document the sequence of "gadgets" that form the unintended computation.
+
+Instructions for your response:
+1.  **Domain Analysis:** A brief explanation of what this trace represents in the real world. Does this make sense in {domain}?
+2.  **Verdict:** Choose EXACTLY ONE: [Modeling Gap | Missing Assumption | Genuine Emergent Behavior].
+3.  **Required Action:** Provide either the required REJECT rule logic, the Implicit Assumption Edge, or the Weird Machine gadget chain.
+"""
+
+
+def _run_sme(trace: str, domain: str, api_key: str, model_name: str) -> str:
+    """Call the SME LLM agent for one flagged trace; return its raw text.
+    Single source of truth for both /api/ask_sme and /api/sme_pattern."""
+    import openai
+    client = openai.OpenAI(api_key=api_key,
+                           base_url="https://openrouter.ai/api/v1")
+    response = client.chat.completions.create(
+        model=model_name,
+        messages=[
+            {"role": "system", "content": _sme_system_prompt(domain)},
+            {"role": "user",
+             "content": f"Please review the following trace:\n\n{trace}"},
+        ],
+    )
+    return response.choices[0].message.content
+
+
+@app.route("/api/ask_sme", methods=["POST"])
+def api_ask_sme():
+    data = request.get_json()
+    trace = data.get("trace")
+    domain = data.get("domain", "Systems Architecture")
+    api_key = data.get("api_key") or _DEFAULT_OR_KEY
+    model_name = data.get("model", "meta-llama/llama-3.1-8b-instruct:free")
+    if not trace:
+        return jsonify({"error": "No trace provided"}), 400
+    if not api_key:
+        return jsonify({"error": "No API key provided (set OPENROUTER_API_KEY "
+                                 "or enter a key in the UI)."}), 400
+    try:
+        return jsonify({"result": _run_sme(trace, domain, api_key, model_name)})
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "traceback": traceback.format_exc(),
+        }), 500
+
+
+# --- Assumption Graph ------------------------------------------------- #
+
+def _resolve_inputs(req):
+    """Resolve schema (+optional traces) from a multipart request into
+    file paths, mirroring /api/scan. Returns (schema_path, gry_path,
+    tmpfiles). Raises ValueError if no schema supplied."""
+    tmpfiles = []
+    schema_path = None
+    gry_path = None
+    if "schema_file" in req.files and req.files["schema_file"].filename:
+        f = req.files["schema_file"]
+        fd, schema_path = tempfile.mkstemp(suffix=".mp")
+        os.close(fd)
+        f.save(schema_path)
+        tmpfiles.append(schema_path)
+    elif req.form.get("example_schema"):
+        schema_path = _find_example(req.form["example_schema"])
+        if schema_path is None:
+            raise ValueError(f"example schema not found: "
+                             f"{req.form['example_schema']}")
+    else:
+        raise ValueError("no schema provided")
+
+    if "traces_file" in req.files and req.files["traces_file"].filename:
+        f = req.files["traces_file"]
+        fd, gry_path = tempfile.mkstemp(suffix=".gry")
+        os.close(fd)
+        f.save(gry_path)
+        tmpfiles.append(gry_path)
+    elif req.form.get("example_traces"):
+        gry_path = _find_example(req.form["example_traces"])
+    return schema_path, gry_path, tmpfiles
+
+
+@app.route("/api/assumption_graph", methods=["POST"])
+def api_assumption_graph():
+    """Build the EXPLICIT assumption graph from the schema, plus (if a
+    .gry is supplied) the deduplicated SME worklist of flagged patterns.
+    No LLM calls here -- implicit edges are added afterward, one pattern
+    at a time, via /api/sme_pattern."""
+    tmpfiles = []
+    try:
+        schema_path, gry_path, tmpfiles = _resolve_inputs(request)
+        graph = build_iag(schema_path, gry_path)
+        return jsonify(graph)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"error": str(e),
+                        "traceback": traceback.format_exc()}), 500
+    finally:
+        for p in tmpfiles:
+            try:
+                os.remove(p)
+            except OSError:
+                pass
+
+
+@app.route("/api/sme_pattern", methods=["POST"])
+def api_sme_pattern():
+    """Adjudicate ONE flagged pattern with the SME agent and return the
+    raw verdict plus any IAG edges parsed from it (validated against the
+    graph's node ids). The client loops this over the worklist to
+    complete the graph, logging each step for provenance."""
+    data = request.get_json() or {}
+    pattern = data.get("pattern") or {}
+    trace = data.get("trace") or pattern.get("witness_text")
+    domain = data.get("domain", "Systems Architecture")
+    api_key = data.get("api_key") or _DEFAULT_OR_KEY
+    model_name = data.get("model", "meta-llama/llama-3.1-8b-instruct:free")
+    valid_states = set(data.get("valid_states") or [])
+    if not trace:
+        return jsonify({"error": "No trace/pattern provided"}), 400
+    if not api_key:
+        return jsonify({"error": "No API key provided (set OPENROUTER_API_KEY "
+                                 "or enter a key in the UI)."}), 400
+    try:
+        raw = _run_sme(trace, domain, api_key, model_name)
+        parsed = parse_sme_verdict(raw, valid_states=valid_states or None)
+        edges = implicit_edges_from_verdict(parsed, pattern, model=model_name)
+        return jsonify({"raw": raw, "parsed": {
+            "verdict": parsed["verdict"],
+            "edges": parsed["edges"],
+            "reject": parsed["reject"],
+            "gadget": parsed["gadget"],
+        }, "new_edges": edges})
+    except Exception as e:
+        return jsonify({"error": str(e),
+                        "traceback": traceback.format_exc()}), 500
 
 
 @app.route("/static/<path:filename>")

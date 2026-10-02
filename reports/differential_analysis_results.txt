@@ -1,0 +1,338 @@
+========================================================================================================================
+UNIFIED DIFFERENTIAL ANALYSIS — SMART HOME MODEL
+Unconstrained Traces: 57600
+Constrained Traces:   18080
+========================================================================================================================
+
+1. SINGLE STATE DEVIATIONS (Critical z = 3.14)
+------------------------------------------------------------------------------------------------------------------------
+SUPPRESSED STATES:
+  thermal_loads        loads shed for dr                 p1=25.00% p2= 4.96% z=  -58.55
+  hems                 grid services mode                p1=33.33% p2=15.93% z=  -44.91
+  grid_connection      grid outage                       p1=20.00% p2= 8.41% z=  -36.01
+  home_battery         battery islanded                  p1=16.67% p2=10.40% z=  -20.50
+  comm_gateway         gateway updating                  p1=25.00% p2=18.53% z=  -17.92
+  comm_gateway         gateway offline                   p1=25.00% p2=18.53% z=  -17.92
+  home_battery         battery discharging               p1=33.33% p2=29.42% z=   -9.80
+  solar_inverter       solar faulted                     p1=25.00% p2=21.46% z=   -9.70
+  solar_inverter       solar sleeping                    p1=25.00% p2=21.46% z=   -9.70
+  grid_connection      demand response event             p1=40.00% p2=37.83% z=   -5.20
+
+BOOSTED STATES:
+  hems                 manual override mode              p1=16.67% p2=27.72% z=   32.85
+  comm_gateway         gateway online                    p1=50.00% p2=62.94% z=   30.42
+  grid_connection      importing power                   p1=20.00% p2=29.42% z=   26.58
+  thermal_loads        loads idle                        p1=25.00% p2=33.10% z=   21.41
+  home_battery         battery depleted                  p1=16.67% p2=22.12% z=   16.67
+  home_battery         battery standby                   p1=16.67% p2=22.12% z=   16.67
+  thermal_loads        loads running reduced             p1=25.00% p2=30.97% z=   15.89
+  thermal_loads        loads running full                p1=25.00% p2=30.97% z=   15.89
+  grid_connection      exporting power                   p1=20.00% p2=24.34% z=   12.48
+  solar_inverter       solar curtailed                   p1=25.00% p2=28.54% z=    9.49
+  solar_inverter       solar producing                   p1=25.00% p2=28.54% z=    9.49
+  hems                 self consumption mode             p1=16.67% p2=18.78% z=    6.58
+  hems                 backup reserve mode               p1=16.67% p2=18.78% z=    6.58
+  hems                 time of use mode                  p1=16.67% p2=18.78% z=    6.58
+
+
+2. CO-OCCURRENCE DEVIATIONS (Critical z = 3.83)
+------------------------------------------------------------------------------------------------------------------------
+SUPPRESSED CO-OCCURRENCES:
+  demand response event          + loads shed for dr               p1=10.00% p2= 0.00% z=  -44.24
+  grid services mode             + loads shed for dr               p1= 8.33% p2= 0.00% z=  -40.11
+  gateway updating               + grid services mode              p1= 8.33% p2= 0.00% z=  -40.11
+  gateway offline                + grid services mode              p1= 8.33% p2= 0.00% z=  -40.11
+  gateway online                 + loads shed for dr               p1=12.50% p2= 2.48% z=  -39.01
+  grid outage                    + grid services mode              p1= 6.67% p2= 0.00% z=  -35.63
+  grid services mode             + battery islanded                p1= 5.56% p2= 0.00% z=  -32.39
+  battery discharging            + loads shed for dr               p1= 8.33% p2= 1.50% z=  -32.04
+  grid services mode             + battery discharging             p1=11.11% p2= 3.32% z=  -31.55
+  grid outage                    + battery discharging             p1= 6.67% p2= 0.88% z=  -30.31
+  self consumption mode          + loads shed for dr               p1= 4.17% p2= 0.00% z=  -27.89
+  backup reserve mode            + loads shed for dr               p1= 4.17% p2= 0.00% z=  -27.89
+  time of use mode               + loads shed for dr               p1= 4.17% p2= 0.00% z=  -27.89
+  solar faulted                  + loads shed for dr               p1= 6.25% p2= 1.15% z=  -27.37
+  solar sleeping                 + loads shed for dr               p1= 6.25% p2= 1.15% z=  -27.37
+  gateway updating               + loads shed for dr               p1= 6.25% p2= 1.24% z=  -26.84
+  gateway offline                + loads shed for dr               p1= 6.25% p2= 1.24% z=  -26.84
+  solar curtailed                + loads shed for dr               p1= 6.25% p2= 1.33% z=  -26.31
+  solar producing                + loads shed for dr               p1= 6.25% p2= 1.33% z=  -26.31
+  grid outage                    + battery charging                p1= 3.33% p2= 0.00% z=  -24.87
+  vehicle charging               + loads shed for dr               p1= 5.00% p2= 0.88% z=  -24.58
+  gateway online                 + grid outage                     p1=10.00% p2= 4.20% z=  -24.23
+  grid outage                    + loads shed for dr               p1= 5.00% p2= 0.97% z=  -23.99
+  demand response event          + battery islanded                p1= 6.67% p2= 1.99% z=  -23.96
+  charge suspended               + loads shed for dr               p1= 5.00% p2= 1.02% z=  -23.70
+  no vehicle present             + loads shed for dr               p1= 5.00% p2= 1.02% z=  -23.70
+  vehicle plugged idle           + loads shed for dr               p1= 5.00% p2= 1.02% z=  -23.70
+  charger faulted                + loads shed for dr               p1= 5.00% p2= 1.02% z=  -23.70
+  grid services mode             + solar faulted                   p1= 8.33% p2= 3.15% z=  -23.67
+  grid services mode             + solar sleeping                  p1= 8.33% p2= 3.15% z=  -23.67
+  battery charging               + loads shed for dr               p1= 4.17% p2= 0.66% z=  -22.90
+  battery depleted               + loads shed for dr               p1= 4.17% p2= 0.84% z=  -21.61
+  battery standby                + loads shed for dr               p1= 4.17% p2= 0.84% z=  -21.61
+  grid outage                    + solar curtailed                 p1= 5.00% p2= 1.44% z=  -20.95
+  grid outage                    + solar producing                 p1= 5.00% p2= 1.44% z=  -20.95
+  gateway updating               + demand response event           p1=10.00% p2= 4.98% z=  -20.80
+  gateway offline                + demand response event           p1=10.00% p2= 4.98% z=  -20.80
+  battery islanded               + loads shed for dr               p1= 4.17% p2= 1.11% z=  -19.71
+  demand response event          + grid services mode              p1=13.33% p2= 7.96% z=  -19.34
+  exporting power                + loads shed for dr               p1= 5.00% p2= 1.77% z=  -18.83
+  grid outage                    + loads running reduced           p1= 5.00% p2= 1.77% z=  -18.83
+  grid outage                    + loads running full              p1= 5.00% p2= 1.77% z=  -18.83
+  vehicle charging               + grid outage                     p1= 4.00% p2= 1.15% z=  -18.66
+  grid outage                    + battery depleted                p1= 3.33% p2= 0.88% z=  -17.57
+  grid outage                    + battery standby                 p1= 3.33% p2= 0.88% z=  -17.57
+  exporting power                + battery islanded                p1= 3.33% p2= 0.88% z=  -17.57
+  charge suspended               + grid services mode              p1= 6.67% p2= 3.19% z=  -17.42
+  vehicle charging               + grid services mode              p1= 6.67% p2= 3.19% z=  -17.42
+  no vehicle present             + grid services mode              p1= 6.67% p2= 3.19% z=  -17.42
+  vehicle plugged idle           + grid services mode              p1= 6.67% p2= 3.19% z=  -17.42
+  charger faulted                + grid services mode              p1= 6.67% p2= 3.19% z=  -17.42
+  gateway updating               + grid outage                     p1= 5.00% p2= 2.10% z=  -16.75
+  gateway offline                + grid outage                     p1= 5.00% p2= 2.10% z=  -16.75
+  exporting power                + grid services mode              p1= 6.67% p2= 3.32% z=  -16.71
+  importing power                + loads shed for dr               p1= 5.00% p2= 2.21% z=  -16.06
+  grid services mode             + solar curtailed                 p1= 8.33% p2= 4.81% z=  -15.69
+  grid services mode             + solar producing                 p1= 8.33% p2= 4.81% z=  -15.69
+  battery charging               + solar faulted                   p1= 4.17% p2= 1.77% z=  -15.10
+  battery charging               + solar sleeping                  p1= 4.17% p2= 1.77% z=  -15.10
+  demand response event          + battery discharging             p1=13.33% p2= 9.29% z=  -14.40
+  charge suspended               + grid outage                     p1= 4.00% p2= 1.81% z=  -13.99
+  no vehicle present             + grid outage                     p1= 4.00% p2= 1.81% z=  -13.99
+  vehicle plugged idle           + grid outage                     p1= 4.00% p2= 1.81% z=  -13.99
+  charger faulted                + grid outage                     p1= 4.00% p2= 1.81% z=  -13.99
+  grid services mode             + loads running reduced           p1= 8.33% p2= 5.31% z=  -13.38
+  grid services mode             + loads idle                      p1= 8.33% p2= 5.31% z=  -13.38
+  grid services mode             + loads running full              p1= 8.33% p2= 5.31% z=  -13.38
+  grid outage                    + solar faulted                   p1= 5.00% p2= 2.77% z=  -12.69
+  grid outage                    + solar sleeping                  p1= 5.00% p2= 2.77% z=  -12.69
+  gateway online                 + battery islanded                p1= 8.33% p2= 5.53% z=  -12.36
+  grid services mode             + battery charging                p1= 5.56% p2= 3.32% z=  -12.02
+  gateway updating               + solar faulted                   p1= 6.25% p2= 4.04% z=  -11.17
+  gateway offline                + solar faulted                   p1= 6.25% p2= 4.04% z=  -11.17
+  gateway updating               + solar sleeping                  p1= 6.25% p2= 4.04% z=  -11.17
+  gateway offline                + solar sleeping                  p1= 6.25% p2= 4.04% z=  -11.17
+  battery islanded               + solar faulted                   p1= 4.17% p2= 2.38% z=  -11.06
+  battery islanded               + solar sleeping                  p1= 4.17% p2= 2.38% z=  -11.06
+  self consumption mode          + battery islanded                p1= 2.78% p2= 1.33% z=  -11.05
+  backup reserve mode            + battery islanded                p1= 2.78% p2= 1.33% z=  -11.05
+  time of use mode               + battery islanded                p1= 2.78% p2= 1.33% z=  -11.05
+  gateway updating               + battery discharging             p1= 8.33% p2= 5.86% z=  -10.84
+  gateway offline                + battery discharging             p1= 8.33% p2= 5.86% z=  -10.84
+  importing power                + battery islanded                p1= 3.33% p2= 1.77% z=  -10.82
+  gateway updating               + battery islanded                p1= 4.17% p2= 2.43% z=  -10.70
+  gateway offline                + battery islanded                p1= 4.17% p2= 2.43% z=  -10.70
+  grid outage                    + self consumption mode           p1= 3.33% p2= 1.86% z=  -10.17
+  grid outage                    + backup reserve mode             p1= 3.33% p2= 1.86% z=  -10.17
+  grid outage                    + time of use mode                p1= 3.33% p2= 1.86% z=  -10.17
+  exporting power                + solar faulted                   p1= 5.00% p2= 3.21% z=  -10.06
+  exporting power                + solar sleeping                  p1= 5.00% p2= 3.21% z=  -10.06
+  importing power                + grid services mode              p1= 6.67% p2= 4.65% z=   -9.84
+  charge suspended               + battery islanded                p1= 3.33% p2= 2.08% z=   -8.57
+  vehicle charging               + battery islanded                p1= 3.33% p2= 2.08% z=   -8.57
+  no vehicle present             + battery islanded                p1= 3.33% p2= 2.08% z=   -8.57
+  vehicle plugged idle           + battery islanded                p1= 3.33% p2= 2.08% z=   -8.57
+  charger faulted                + battery islanded                p1= 3.33% p2= 2.08% z=   -8.57
+  battery islanded               + solar curtailed                 p1= 4.17% p2= 2.82% z=   -8.21
+  battery islanded               + solar producing                 p1= 4.17% p2= 2.82% z=   -8.21
+  gateway updating               + battery charging                p1= 4.17% p2= 2.82% z=   -8.21
+  gateway offline                + battery charging                p1= 4.17% p2= 2.82% z=   -8.21
+  gateway updating               + vehicle charging                p1= 5.00% p2= 3.57% z=   -7.94
+  gateway offline                + vehicle charging                p1= 5.00% p2= 3.57% z=   -7.94
+  demand response event          + solar faulted                   p1=10.00% p2= 8.13% z=   -7.46
+  demand response event          + solar sleeping                  p1=10.00% p2= 8.13% z=   -7.46
+  gateway updating               + charge suspended                p1= 5.00% p2= 3.74% z=   -6.99
+  gateway offline                + charge suspended                p1= 5.00% p2= 3.74% z=   -6.99
+  gateway updating               + no vehicle present              p1= 5.00% p2= 3.74% z=   -6.99
+  gateway offline                + no vehicle present              p1= 5.00% p2= 3.74% z=   -6.99
+  gateway updating               + vehicle plugged idle            p1= 5.00% p2= 3.74% z=   -6.99
+  gateway offline                + vehicle plugged idle            p1= 5.00% p2= 3.74% z=   -6.99
+  gateway updating               + charger faulted                 p1= 5.00% p2= 3.74% z=   -6.99
+  gateway offline                + charger faulted                 p1= 5.00% p2= 3.74% z=   -6.99
+  demand response event          + battery charging                p1= 6.67% p2= 5.31% z=   -6.53
+  battery islanded               + loads running reduced           p1= 4.17% p2= 3.10% z=   -6.47
+  battery islanded               + loads idle                      p1= 4.17% p2= 3.10% z=   -6.47
+  battery islanded               + loads running full              p1= 4.17% p2= 3.10% z=   -6.47
+  grid outage                    + loads idle                      p1= 5.00% p2= 3.89% z=   -6.11
+  vehicle charging               + solar faulted                   p1= 5.00% p2= 4.03% z=   -5.36
+  vehicle charging               + solar sleeping                  p1= 5.00% p2= 4.03% z=   -5.36
+  battery discharging            + solar curtailed                 p1= 8.33% p2= 7.13% z=   -5.17
+  battery discharging            + solar producing                 p1= 8.33% p2= 7.13% z=   -5.17
+  gateway updating               + solar curtailed                 p1= 6.25% p2= 5.23% z=   -5.05
+  gateway offline                + solar curtailed                 p1= 6.25% p2= 5.23% z=   -5.05
+  gateway updating               + solar producing                 p1= 6.25% p2= 5.23% z=   -5.05
+  gateway offline                + solar producing                 p1= 6.25% p2= 5.23% z=   -5.05
+  grid services mode             + battery depleted                p1= 5.56% p2= 4.65% z=   -4.75
+  grid services mode             + battery standby                 p1= 5.56% p2= 4.65% z=   -4.75
+  vehicle charging               + battery discharging             p1= 6.67% p2= 5.71% z=   -4.58
+
+BOOSTED CO-OCCURRENCES:
+  importing power                + manual override mode            p1= 3.33% p2= 8.85% z=   30.73
+  gateway online                 + loads idle                      p1=12.50% p2=20.86% z=   27.86
+  gateway online                 + manual override mode            p1= 8.33% p2=15.35% z=   27.44
+  exporting power                + battery discharging             p1= 6.67% p2=12.83% z=   26.45
+  gateway online                 + importing power                 p1=10.00% p2=17.04% z=   25.69
+  gateway online                 + battery depleted                p1= 8.33% p2=14.71% z=   25.10
+  gateway online                 + battery standby                 p1= 8.33% p2=14.71% z=   25.10
+  gateway online                 + loads running reduced           p1=12.50% p2=19.80% z=   24.50
+  gateway online                 + loads running full              p1=12.50% p2=19.80% z=   24.50
+  manual override mode           + battery islanded                p1= 2.78% p2= 6.42% z=   22.77
+  gateway online                 + demand response event           p1=20.00% p2=27.88% z=   22.35
+  importing power                + battery depleted                p1= 3.33% p2= 7.08% z=   21.84
+  importing power                + battery standby                 p1= 3.33% p2= 7.08% z=   21.84
+  importing power                + battery charging                p1= 3.33% p2= 7.08% z=   21.84
+  exporting power                + manual override mode            p1= 3.33% p2= 7.08% z=   21.84
+  manual override mode           + loads idle                      p1= 4.17% p2= 7.94% z=   20.19
+  importing power                + loads running reduced           p1= 5.00% p2= 9.07% z=   20.15
+  importing power                + loads idle                      p1= 5.00% p2= 9.07% z=   20.15
+  importing power                + loads running full              p1= 5.00% p2= 9.07% z=   20.15
+  exporting power                + solar curtailed                 p1= 5.00% p2= 8.96% z=   19.64
+  exporting power                + solar producing                 p1= 5.00% p2= 8.96% z=   19.64
+  manual override mode           + solar curtailed                 p1= 4.17% p2= 7.80% z=   19.49
+  manual override mode           + solar producing                 p1= 4.17% p2= 7.80% z=   19.49
+  gateway online                 + solar curtailed                 p1=12.50% p2=18.09% z=   18.98
+  gateway online                 + solar producing                 p1=12.50% p2=18.09% z=   18.98
+  battery depleted               + loads idle                      p1= 4.17% p2= 7.57% z=   18.34
+  battery standby                + loads idle                      p1= 4.17% p2= 7.57% z=   18.34
+  manual override mode           + loads running reduced           p1= 4.17% p2= 7.41% z=   17.56
+  manual override mode           + loads running full              p1= 4.17% p2= 7.41% z=   17.56
+  demand response event          + battery depleted                p1= 6.67% p2=10.62% z=   17.49
+  demand response event          + battery standby                 p1= 6.67% p2=10.62% z=   17.49
+  battery depleted               + loads running reduced           p1= 4.17% p2= 6.86% z=   14.76
+  battery depleted               + loads running full              p1= 4.17% p2= 6.86% z=   14.76
+  battery standby                + loads running reduced           p1= 4.17% p2= 6.86% z=   14.76
+  battery standby                + loads running full              p1= 4.17% p2= 6.86% z=   14.76
+  grid outage                    + battery islanded                p1= 3.33% p2= 5.75% z=   14.64
+  manual override mode           + battery depleted                p1= 2.78% p2= 5.00% z=   14.57
+  manual override mode           + battery standby                 p1= 2.78% p2= 5.00% z=   14.57
+  gateway online                 + exporting power                 p1=10.00% p2=13.83% z=   14.40
+  charge suspended               + manual override mode            p1= 3.33% p2= 5.60% z=   13.76
+  no vehicle present             + manual override mode            p1= 3.33% p2= 5.60% z=   13.76
+  vehicle plugged idle           + manual override mode            p1= 3.33% p2= 5.60% z=   13.76
+  charger faulted                + manual override mode            p1= 3.33% p2= 5.60% z=   13.76
+  self consumption mode          + loads idle                      p1= 4.17% p2= 6.62% z=   13.50
+  backup reserve mode            + loads idle                      p1= 4.17% p2= 6.62% z=   13.50
+  time of use mode               + loads idle                      p1= 4.17% p2= 6.62% z=   13.50
+  solar curtailed                + loads running reduced           p1= 6.25% p2= 9.07% z=   13.03
+  solar curtailed                + loads idle                      p1= 6.25% p2= 9.07% z=   13.03
+  solar curtailed                + loads running full              p1= 6.25% p2= 9.07% z=   13.03
+  solar producing                + loads running reduced           p1= 6.25% p2= 9.07% z=   13.03
+  solar producing                + loads idle                      p1= 6.25% p2= 9.07% z=   13.03
+  solar producing                + loads running full              p1= 6.25% p2= 9.07% z=   13.03
+  exporting power                + loads running reduced           p1= 5.00% p2= 7.52% z=   12.87
+  exporting power                + loads idle                      p1= 5.00% p2= 7.52% z=   12.87
+  exporting power                + loads running full              p1= 5.00% p2= 7.52% z=   12.87
+  vehicle charging               + manual override mode            p1= 3.33% p2= 5.33% z=   12.25
+  importing power                + self consumption mode           p1= 3.33% p2= 5.31% z=   12.12
+  importing power                + backup reserve mode             p1= 3.33% p2= 5.31% z=   12.12
+  importing power                + time of use mode                p1= 3.33% p2= 5.31% z=   12.12
+  importing power                + solar faulted                   p1= 5.00% p2= 7.36% z=   12.06
+  importing power                + solar sleeping                  p1= 5.00% p2= 7.36% z=   12.06
+  importing power                + solar curtailed                 p1= 5.00% p2= 7.36% z=   12.06
+  importing power                + solar producing                 p1= 5.00% p2= 7.36% z=   12.06
+  battery depleted               + solar curtailed                 p1= 4.17% p2= 6.19% z=   11.30
+  battery standby                + solar curtailed                 p1= 4.17% p2= 6.19% z=   11.30
+  battery charging               + solar curtailed                 p1= 4.17% p2= 6.19% z=   11.30
+  battery depleted               + solar producing                 p1= 4.17% p2= 6.19% z=   11.30
+  battery standby                + solar producing                 p1= 4.17% p2= 6.19% z=   11.30
+  battery charging               + solar producing                 p1= 4.17% p2= 6.19% z=   11.30
+  gateway updating               + manual override mode            p1= 4.17% p2= 6.18% z=   11.24
+  gateway offline                + manual override mode            p1= 4.17% p2= 6.18% z=   11.24
+  charge suspended               + importing power                 p1= 4.00% p2= 5.88% z=   10.72
+  vehicle charging               + importing power                 p1= 4.00% p2= 5.88% z=   10.72
+  no vehicle present             + importing power                 p1= 4.00% p2= 5.88% z=   10.72
+  vehicle plugged idle           + importing power                 p1= 4.00% p2= 5.88% z=   10.72
+  charger faulted                + importing power                 p1= 4.00% p2= 5.88% z=   10.72
+  self consumption mode          + loads running reduced           p1= 4.17% p2= 6.08% z=   10.71
+  self consumption mode          + loads running full              p1= 4.17% p2= 6.08% z=   10.71
+  backup reserve mode            + loads running reduced           p1= 4.17% p2= 6.08% z=   10.71
+  backup reserve mode            + loads running full              p1= 4.17% p2= 6.08% z=   10.71
+  time of use mode               + loads running reduced           p1= 4.17% p2= 6.08% z=   10.71
+  time of use mode               + loads running full              p1= 4.17% p2= 6.08% z=   10.71
+  manual override mode           + solar faulted                   p1= 4.17% p2= 6.06% z=   10.59
+  manual override mode           + solar sleeping                  p1= 4.17% p2= 6.06% z=   10.59
+  demand response event          + manual override mode            p1= 6.67% p2= 8.96% z=   10.40
+  manual override mode           + battery discharging             p1= 5.56% p2= 7.65% z=   10.32
+  gateway online                 + charge suspended                p1=10.00% p2=12.65% z=   10.10
+  gateway online                 + no vehicle present              p1=10.00% p2=12.65% z=   10.10
+  gateway online                 + vehicle plugged idle            p1=10.00% p2=12.65% z=   10.10
+  gateway online                 + charger faulted                 p1=10.00% p2=12.65% z=   10.10
+  demand response event          + loads running reduced           p1=10.00% p2=12.61% z=    9.94
+  demand response event          + loads idle                      p1=10.00% p2=12.61% z=    9.94
+  demand response event          + loads running full              p1=10.00% p2=12.61% z=    9.94
+  self consumption mode          + battery depleted                p1= 2.78% p2= 4.16% z=    9.34
+  backup reserve mode            + battery depleted                p1= 2.78% p2= 4.16% z=    9.34
+  time of use mode               + battery depleted                p1= 2.78% p2= 4.16% z=    9.34
+  self consumption mode          + battery standby                 p1= 2.78% p2= 4.16% z=    9.34
+  backup reserve mode            + battery standby                 p1= 2.78% p2= 4.16% z=    9.34
+  time of use mode               + battery standby                 p1= 2.78% p2= 4.16% z=    9.34
+  gateway online                 + self consumption mode           p1= 8.33% p2=10.55% z=    9.16
+  gateway online                 + backup reserve mode             p1= 8.33% p2=10.55% z=    9.16
+  gateway online                 + time of use mode                p1= 8.33% p2=10.55% z=    9.16
+  charge suspended               + loads idle                      p1= 5.00% p2= 6.73% z=    8.95
+  no vehicle present             + loads idle                      p1= 5.00% p2= 6.73% z=    8.95
+  vehicle plugged idle           + loads idle                      p1= 5.00% p2= 6.73% z=    8.95
+  charger faulted                + loads idle                      p1= 5.00% p2= 6.73% z=    8.95
+  gateway online                 + vehicle charging                p1=10.00% p2=12.32% z=    8.87
+  exporting power                + self consumption mode           p1= 3.33% p2= 4.65% z=    8.21
+  exporting power                + backup reserve mode             p1= 3.33% p2= 4.65% z=    8.21
+  exporting power                + time of use mode                p1= 3.33% p2= 4.65% z=    8.21
+  gateway online                 + battery charging                p1= 8.33% p2=10.29% z=    8.09
+  charge suspended               + battery depleted                p1= 3.33% p2= 4.47% z=    7.15
+  charge suspended               + battery standby                 p1= 3.33% p2= 4.47% z=    7.15
+  no vehicle present             + battery depleted                p1= 3.33% p2= 4.47% z=    7.15
+  no vehicle present             + battery standby                 p1= 3.33% p2= 4.47% z=    7.15
+  vehicle plugged idle           + battery depleted                p1= 3.33% p2= 4.47% z=    7.15
+  vehicle plugged idle           + battery standby                 p1= 3.33% p2= 4.47% z=    7.15
+  charger faulted                + battery depleted                p1= 3.33% p2= 4.47% z=    7.15
+  charger faulted                + battery standby                 p1= 3.33% p2= 4.47% z=    7.15
+  self consumption mode          + solar curtailed                 p1= 4.17% p2= 5.31% z=    6.51
+  backup reserve mode            + solar curtailed                 p1= 4.17% p2= 5.31% z=    6.51
+  time of use mode               + solar curtailed                 p1= 4.17% p2= 5.31% z=    6.51
+  self consumption mode          + solar producing                 p1= 4.17% p2= 5.31% z=    6.51
+  backup reserve mode            + solar producing                 p1= 4.17% p2= 5.31% z=    6.51
+  time of use mode               + solar producing                 p1= 4.17% p2= 5.31% z=    6.51
+  charge suspended               + loads running reduced           p1= 5.00% p2= 6.19% z=    6.26
+  charge suspended               + loads running full              p1= 5.00% p2= 6.19% z=    6.26
+  vehicle charging               + loads running reduced           p1= 5.00% p2= 6.19% z=    6.26
+  vehicle charging               + loads idle                      p1= 5.00% p2= 6.19% z=    6.26
+  vehicle charging               + loads running full              p1= 5.00% p2= 6.19% z=    6.26
+  no vehicle present             + loads running reduced           p1= 5.00% p2= 6.19% z=    6.26
+  no vehicle present             + loads running full              p1= 5.00% p2= 6.19% z=    6.26
+  vehicle plugged idle           + loads running reduced           p1= 5.00% p2= 6.19% z=    6.26
+  vehicle plugged idle           + loads running full              p1= 5.00% p2= 6.19% z=    6.26
+  charger faulted                + loads running reduced           p1= 5.00% p2= 6.19% z=    6.26
+  charger faulted                + loads running full              p1= 5.00% p2= 6.19% z=    6.26
+  gateway updating               + importing power                 p1= 5.00% p2= 6.19% z=    6.26
+  gateway offline                + importing power                 p1= 5.00% p2= 6.19% z=    6.26
+  battery discharging            + loads idle                      p1= 8.33% p2= 9.78% z=    6.02
+  manual override mode           + battery charging                p1= 2.78% p2= 3.65% z=    6.01
+  solar faulted                  + loads idle                      p1= 6.25% p2= 7.48% z=    5.82
+  solar sleeping                 + loads idle                      p1= 6.25% p2= 7.48% z=    5.82
+  vehicle charging               + battery depleted                p1= 3.33% p2= 4.25% z=    5.80
+  vehicle charging               + battery standby                 p1= 3.33% p2= 4.25% z=    5.80
+  battery charging               + loads running reduced           p1= 4.17% p2= 5.09% z=    5.28
+  battery charging               + loads idle                      p1= 4.17% p2= 5.09% z=    5.28
+  battery charging               + loads running full              p1= 4.17% p2= 5.09% z=    5.28
+  charge suspended               + exporting power                 p1= 4.00% p2= 4.87% z=    5.07
+  vehicle charging               + exporting power                 p1= 4.00% p2= 4.87% z=    5.07
+  no vehicle present             + exporting power                 p1= 4.00% p2= 4.87% z=    5.07
+  vehicle plugged idle           + exporting power                 p1= 4.00% p2= 4.87% z=    5.07
+  charger faulted                + exporting power                 p1= 4.00% p2= 4.87% z=    5.07
+  manual override mode           + loads shed for dr               p1= 4.17% p2= 4.96% z=    4.54
+  battery depleted               + solar faulted                   p1= 4.17% p2= 4.87% z=    4.04
+  battery standby                + solar faulted                   p1= 4.17% p2= 4.87% z=    4.04
+  battery depleted               + solar sleeping                  p1= 4.17% p2= 4.87% z=    4.04
+  battery standby                + solar sleeping                  p1= 4.17% p2= 4.87% z=    4.04
+
+
+3. PRECEDENCE DEVIATIONS (Critical z = 4.02)
+------------------------------------------------------------------------------------------------------------------------
+SUPPRESSED EVENT ORDERINGS:
+  enrolled in vpp                     BEFORE commanding export                    p1=16.67% p2= 6.31% z=  -34.83
+  delivering energy                   BEFORE sending to grid                      p1=16.67% p2= 6.42% z=  -34.43
+  dr signal received                  BEFORE curtailment applied                  p1=20.00% p2=13.94% z=  -18.29
+
+BOOSTED EVENT ORDERINGS:
+  coordinating devices                BEFORE cloud connected                      p1=25.00% p2=31.47% z=   17.19

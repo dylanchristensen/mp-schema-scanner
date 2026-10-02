@@ -10,13 +10,31 @@
   <h1>MP Schema Gap Scanner</h1>
   <p class="tagline">
     Load a Monterey Phoenix schema (and optionally a Gryphon trace
-    file) to surface candidate REJECT rules the schema is missing.
+    file) to surface candidate REJECT rules the schema is missing, and
+    build the Implicit Assumption Graph.
   </p>
 </header>
 
 <main>
   <section class="card" id="inputs">
     <h2>Inputs</h2>
+
+    <div class="domain-input" style="margin-bottom: 1rem; display: flex; gap: 1rem;">
+      <div style="flex: 1;">
+        <label for="sme-domain"><strong>Domain Context:</strong></label>
+        <input type="text" id="sme-domain" placeholder="e.g., Clinical Healthcare" style="width: 100%; padding: 0.5rem; margin-top: 0.5rem;">
+      </div>
+      <div style="flex: 1;">
+        <label for="sme-api-key"><strong>OpenRouter Key:</strong></label>
+        <input type="password" id="sme-api-key" placeholder="sk-or-... (or set OPENROUTER_API_KEY)" style="width: 100%; padding: 0.5rem; margin-top: 0.5rem;">
+      </div>
+      <div style="flex: 1;">
+        <label for="sme-model"><strong>Model Name:</strong></label>
+        <select id="sme-model" style="width: 100%; padding: 0.5rem; margin-top: 0.5rem;">
+          <option>Loading models...</option>
+        </select>
+      </div>
+    </div>
 
     <div class="dropzone-row">
       <label class="dropzone" id="schema-drop">
@@ -66,14 +84,52 @@
 
     <div class="actions">
       <button id="run-btn" class="primary">Scan</button>
+      <button id="btn-build-graph" class="primary">Build Assumption Graph</button>
       <span id="status" class="status"></span>
     </div>
   </section>
 
   <section class="card hidden" id="results">
-    <h2>Results</h2>
+    <div style="display: flex; justify-content: space-between; align-items: baseline;">
+      <h2>Results</h2>
+      <div class="export-controls" style="display: none; gap: 10px;">
+        <button id="btn-export-md" class="ask-sme-btn">Export Markdown</button>
+        <button id="btn-export-pdf" class="ask-sme-btn">Export PDF</button>
+      </div>
+    </div>
     <div id="summary"></div>
     <div id="findings"></div>
+  </section>
+
+  <section class="card hidden" id="graph-panel">
+    <div style="display:flex; justify-content:space-between; align-items:baseline;">
+      <h2>Implicit Assumption Graph</h2>
+      <span style="display:flex; gap:8px;">
+        <button id="btn-export-png" class="ask-sme-btn">Download PNG</button>
+        <button id="btn-export-dot" class="ask-sme-btn">Download DOT</button>
+        <button id="btn-complete-sme" class="ask-sme-btn" disabled>Complete with SME</button>
+      </span>
+    </div>
+    <div id="graph-status" class="status"></div>
+
+    <div class="iag-legend">
+      <span><i class="lg" style="background:#374151"></i>requires</span>
+      <span><i class="lg" style="background:#cc0000"></i>mutex</span>
+      <span><i class="lg" style="background:#9ca3af"></i>conditional</span>
+      <span><i class="lg" style="background:#1f6feb"></i>ordering</span>
+      <span><i class="lg" style="background:#e8730c"></i>implicit (SME)</span>
+      <span><i class="lg" style="background:#7b2ff7"></i>emergent</span>
+      <span><i class="lg" style="background:#0d9488"></i>proposed (gap)</span>
+      <span><i class="lg" style="border:1.5px dashed #cc0000;background:#f3f4f6"></i>unreachable state</span>
+    </div>
+
+    <div id="graph-svg-wrap" class="iag-wrap"></div>
+    <div id="graph-prov" class="iag-prov hidden"></div>
+
+    <div class="iag-cols">
+      <div id="graph-patterns" class="iag-half"></div>
+      <div id="graph-log" class="iag-half"></div>
+    </div>
   </section>
 
   <section class="card hidden" id="error-panel">
@@ -89,6 +145,14 @@
   </p>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- Graphviz (WASM) for high-quality assumption-graph layout.
+     Online via CDN like marked above; for a fully offline .exe, vendor
+     these two files into static/ and point the src at them. If they
+     fail to load, graph.js falls back to its built-in renderer. -->
+<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/viz.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/viz.js@2.1.2/full.render.js"></script>
 <script src="/static/app.js"></script>
+<script src="/static/graph.js"></script>
 </body>
 </html>

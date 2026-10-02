@@ -10,32 +10,76 @@ would be eliminated by the proposed rule, with example violations.
 The tool is an SME aid, not an auto-fixer. Every candidate is a
 suggestion for human review.
 
-NSA INSuRE+C, Summer 2026 — Dylan Christensen, Victor Sanchez,
+NSA INSuRE+C, Summer 2026. Dylan Christensen, Victor Sanchez,
 Srikar Kaligotla.
 
-## What it detects
+## How It Works
 
-| Shape | Signal | Description |
-|------:|:-------|:------------|
-| A | Vacuous-foreach gap (Signal 2) | An `ENSURE FOREACH` ordering rule passes trivially because no REJECT forces the prerequisite state to be present whenever the dependent state is active. |
-| B | Symmetric REJECT completion (Signal 3, structural) | One state has a `REJECT` saying it requires a particular source set; analogous states (same root, or sharing semantic descriptor tokens across roots) do not. |
-| C | Optional-event escalation (Signal 3, event-scope) | A `REJECT` is keyed off an *optional* sub-event of a state. When the optional event does not fire, the constraint is silent. Escalating the rule to the parent state closes the gap. |
+At a high level, the scanner bridges the gap between raw execution data and architectural intent:
 
-For mature schemas, candidates are **implicit assumptions to confirm
-with SMEs and record in the Assumption Graph**. For draft schemas,
-they are **suggested REJECT rules for the schema author to triage**.
+1. **Input Generation**: A system architect writes an MP model (`.mp` file) defining the components, states, and rules of a System of Systems. Monterey Phoenix then compiles this model and exhaustively generates a set of **execution traces** (`.gry` files), which represent every physically and logically possible sequence of events.
+2. **Automated Scanning**: The `mp-schema-scanner` parses these traces and scans them against predefined heuristic patterns. 
+3. **Anomaly Flagging**: When a trace matches a problematic pattern, the scanner flags it as a "Candidate Finding" and presents it to the researcher for adjudication.
+4. **Rule Proposal**: For certain anomalies, the scanner automatically synthesizes and proposes new MP `REJECT` rules that the architect could add to the model to forbid the unintended behavior.
+
+## Detection Flags and Implementation Patterns
+
+The paper defines three overarching **Flags** used to score traces: the Explicit-violation flag, the Vacuous-satisfaction flag, and the Co-occurrence anomaly flag.
+
+Under the hood, the scanner implements these theoretical flags by searching for specific mathematical anti-patterns in the schema's logic:
+
+- **Flag: Vacuous-satisfaction (Pattern A: vacuous-foreach gaps)**: This occurs when an MP rule enforces an ordering condition between two events, but the model designer forgot to mandate that the prerequisite event must actually exist. If it never happens, the "BEFORE" condition evaluates to *vacuously true*.
+- **Schema check (Pattern B: symmetric REJECT completion)**: a `REJECT` rule is present for one state but missing for an analogous sibling state. This is a schema-level check with no trace-space counterpart; it is not the co-occurrence flag.
+- **Schema check (Pattern C: optional-event escalation)**: a `REJECT` rule is keyed on an optional sub-event when it should escalate to the parent state. Also schema-level only.
+
+The co-occurrence anomaly flag is statistical and lives in `pipeline/run_cooccurrence_pipeline.py` (see "Pipeline, models, and reports" below). The scanner itself does not compute it.
+
+## The AI Subject Matter Expert (SME) Integration
+
+Identifying an anomaly in a trace is only half the battle. The harder part is determining *why* the anomaly exists. To solve this, the scanner integrates with an **AI SME** (powered by OpenRouter). When a trace is flagged, the researcher can pass the trace and the domain context to the LLM. The tool ships without a key: enter an OpenRouter key in the key box at the top of the UI, or set the `OPENROUTER_API_KEY` environment variable before launching. The default model in the dropdown is a free-tier one.
+
+The AI SME acts as a senior systems architect and classifies the anomaly into exactly one of three categories:
+
+1. **Modeling Gap**: The trace represents a physical impossibility. The designer simply forgot to write a rule forbidding it. (Action: Accept the scanner's proposed `REJECT` rule).
+2. **Missing Assumption**: The trace is physically possible, but violates an undocumented trust assumption between two separate components. (Action: Document an "Implicit Assumption Edge").
+3. **Genuine Emergent Behavior**: The trace is fully valid, utilizes no broken assumptions, but still results in a systemic failure. This is a true **Weird Machine**. (Action: Document the sequence of logical "gadgets" that form the exploit).
+
+## Statistical and Logical Formalisms (The Math)
+
+The scanner isn't just looking for simple text strings; it relies on formal logic and statistical testing to flag anomalies. 
+
+### Vacuous Satisfaction (Pattern A)
+This relies on formal boolean logic. An MP ordering rule is formatted as a universal quantification:
+$\forall x \in \text{traces}, (A \implies B)$
+
+In logic, a material implication $A \implies B$ is **vacuously true** if the antecedent ($A$) is false. Therefore, if the prerequisite event $A$ simply never occurs in the trace, the rule evaluates to `True`, and the trace passes validation. The scanner formally checks the AST (Abstract Syntax Tree) of the schema to ensure that every `BEFORE` clause is accompanied by a strict `REJECT` rule that enforces the existence of the antecedent.
+
+### Symmetric completion and optional-event escalation (Patterns B & C)
+Both are purely structural. Pattern B starts from each existing `REJECT` of the form "X requires Y" and looks for states analogous to X (siblings in the same `ROOT` that share a descriptor token or a source/sink role, or states in other `ROOT`s that share a non-passive name token) that have no `REJECT` requiring Y; each is proposed as a candidate for the analogous rule. Pattern C starts from each `REJECT` whose antecedent is an optional event `[e]` of some state X. Such a rule only fires when the optional event happens to occur, so if the intent is "X always requires Y" the rule should be escalated to X itself; the detector flags cases where no parent-state-level counterpart exists. Neither touches trace data; both propose a candidate `REJECT` clause for SME review.
+
+### Co-occurrence Anomaly (`pipeline/run_cooccurrence_pipeline.py`)
+To detect unwritten dependencies (missing assumptions) between two states $X$ and $Y$ in different components, the co-occurrence pipeline builds a $2 \times 2$ contingency table across the entire generated trace space. It then runs rigorous statistical tests to determine if the states appear together more or less than random chance would predict:
+
+1. **Odds Ratio (OR)**: Computes the association strength.
+   `OR = (X_and_Y * notX_and_notY) / (X_and_notY * notX_and_Y)`
+   To prevent division by zero, the **Haldane--Anscombe correction** adds $0.5$ to every cell in the contingency table.
+2. **Log Odds Ratio**: Inference runs on $\log(\text{OR})$ to ensure symmetric scaling about independence (zero). The scanner uses a $95\%$ confidence interval on the $\log(\text{OR})$ as a gate. Surviving trends are ranked by $|\log \text{OR}|$.
+3. **Fisher's Exact Test**: Because individual state pairs may produce sparse tables, the scanner uses Fisher's exact test on the uncorrected table to compute the exact probability of an association at least as extreme under the null hypothesis (independence).
+4. **Multiple-Testing Corrections**: Since hundreds of state pairs are tested simultaneously, the scanner applies family-wise error rate corrections:
+   - **Bonferroni**: A conservative bound that divides the threshold by the total number of tests to strictly control false positives.
+   - **Benjamini--Hochberg (FDR)**: Controls the false discovery rate, adapting the threshold to the rank order of the $p$-values. This is the primary operative algorithm used for large trace spaces.
 
 ## Quick start
 
 ### Option A -- standalone Windows binary (recommended for end users)
 
-No Python needed. Grab `mp-scanner.exe` from the latest build (or
+No Python needed. Grab `mp-scanner-iag.exe` from the latest build (or
 build it yourself, see below), double-click it. A console window
 appears with the URL it is serving on; your default browser opens to
 the UI automatically.
 
 To include your own schemas/traces in the **Examples** list, create
-an `examples\` folder *next to* `mp-scanner.exe` and drop `.mp` and
+an `examples\` folder *next to* `mp-scanner-iag.exe` and drop `.mp` and
 `.gry` files in there. Bundled examples remain available; same-named
 files beside the exe win.
 
@@ -64,7 +108,7 @@ python app.py
 # Windows PowerShell, from the repo root:
 pip install -r requirements-dev.txt
 .\build.ps1
-# -> dist\mp-scanner.exe  (~17 MB, single file)
+# -> dist\mp-scanner-iag.exe  (~23 MB, single file)
 ```
 
 The build pulls in Flask, waitress, and the project's modules with
@@ -100,6 +144,12 @@ mp-schema-scanner/
     healthcareDelivery_scope_1.gry      # constrained traces (36)
     healthcareDelivery_scope_2.gry      # unconstrained traces (676)
     Smart_Home_Energy_Composed.mp       # draft SoS schema
+  pipeline/               # enumerator, .gry parser, co-occurrence flag, run_model
+  analysis/               # exploratory scripts; legacy/ has the spring per-model parsers
+  models/                 # all nine MP schemas in the study + README of counts
+  reports/                # per-model pipeline, co-occurrence and scan reports
+  docs/                   # model write-ups and pipeline notes
+  requirements-analysis.txt  # adds scipy for analysis/differential_*.py
   mp-scanner.spec         # PyInstaller bundle config
   build.ps1               # one-shot build script
   requirements.txt
@@ -159,3 +209,80 @@ CLI prototype.
 ## License
 
 TBD (research artifact; internal NSA INSuRE+C use for now).
+
+## Pipeline, models, and reports
+
+Everything below was added after the scanner's initial release. The scanner
+modules (`schema_parser.py`, `symbolic_detector.py`, `scanner.py`,
+`assumption_graph.py`, `app.py`) stay at the repo root; the new folders import
+them by relative path, so run every command from the repo root.
+
+```
+pipeline/
+  mp_enumerate.py              closed-form MP enumerator (stdlib only). Reproduces
+                               Gryphon's constrained trace counts exactly on every
+                               model in models/. Optional second arg writes a SQLite
+                               trace database in the same layout gry_parse.py produces.
+  gry_parse.py                 Gryphon .gry  ->  SQLite (one row per trace, one
+                               column per ROOT). Reads ROOT names from the schema.
+  run_cooccurrence_pipeline.py the co-occurrence anomaly flag, paper configuration:
+                               2x2 table per cross-component pair, Haldane-Anscombe
+                               odds ratio, 95% CI gate, Fisher's exact test,
+                               Bonferroni + Benjamini-Hochberg. Needs numpy.
+  run_model.py                 one-shot pass over a model + trace DB: schema scan with
+                               trace evidence, lift ranking, dead-state check.
+  explore_lift.py              lift-based ranking (an earlier measure; kept because
+                               run_model.py and the spring reports use it).
+analysis/                      exploratory and one-off scripts used in the reports
+  reduce2.py                   collapses flagged traces to distinct review patterns
+  iag_dot.py                   renders the assumption graph of a schema to Graphviz .dot
+  differential_*.py            unconstrained-vs-constrained z-tests (needs scipy)
+  legacy/                      per-model parsers from the spring, superseded by gry_parse.py
+models/                        every MP schema in the study, with a README of counts
+reports/                       per-model pipeline, co-occurrence, and scan reports
+docs/                          model write-ups and pipeline notes
+```
+
+### Reproducing the paper's numbers
+
+```bash
+pip install -r requirements.txt          # Flask, waitress, openai, numpy
+
+# 1. Enumerate a model (prints unconstrained/constrained counts as JSON).
+python pipeline/mp_enumerate.py models/healthcareDelivery_corrected.mp
+#   -> {"unconstrained": 729, "constrained": 36, ...}
+
+# 2. Enumerate straight into a trace database (no Gryphon needed) ...
+python pipeline/mp_enumerate.py models/Smart_Home_Energy_Composed.mp smart_home.db
+
+#    ... or load a Gryphon .gry you already have.
+python pipeline/gry_parse.py models/Smart_Home_Energy_Composed.mp constrained.gry smart_home.db
+
+# 3. Run the co-occurrence flag. Writes a Markdown report and prints the summary.
+python pipeline/run_cooccurrence_pipeline.py models/Smart_Home_Energy_Composed.mp smart_home.db report.md smart_home
+#   -> {"N": 18080, "m": 384, "trends": 153, "cling": 79, "excl": 74, "bonf": 118, "bh": 142}
+
+# 4. Scanner + lift + dead-state pass in one go.
+python pipeline/run_model.py models/Smart_Home_Energy_Composed.mp smart_home.db
+
+# 5. Collapse flagged traces to review patterns; draw the assumption graph.
+python analysis/reduce2.py models/Smart_Home_Energy_Composed.mp smart_home.db
+python analysis/iag_dot.py models/Smart_Home_Energy_Composed.mp smart_home.dot && dot -Tpng smart_home.dot -o smart_home.png
+```
+
+Verified on 2026-09-25 from a clean checkout: every model in `models/` enumerates
+to the count in `models/README.txt`, and step 3 on the smart home reproduces
+384 / 153 / 118 / 142.
+
+### What is deliberately not in the repo
+
+Trace files (`.gry`, up to about 1 GB) and the SQLite databases they parse into.
+`.gitignore` already excludes them. Regenerate with `mp_enumerate.py` or
+`gry_parse.py`. The packaged Windows binary (`dist/mp-scanner-iag.exe`, about 23 MB)
+is also ignored; attach it to a GitHub release instead of committing it.
+
+## Assumption Graph
+
+The scanner also builds the Implicit Assumption Graph (explicit edges from
+the schema + implicit edges discovered by the SME agent over flagged trace
+patterns). See `ASSUMPTION_GRAPH.md` for the design and process.

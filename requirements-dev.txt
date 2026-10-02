@@ -1,2 +1,4 @@
 -r requirements.txt
-pyinstaller>=6.0
+waitress==3.0.0
+pyinstaller==6.6.0
+openai

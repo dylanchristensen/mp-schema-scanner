@@ -34,3 +34,8 @@ build/
 dist/
 *.manifest
 
+# Analysis scripts expect regenerated trace files under data/ (see analysis/README.md)
+data/
+
+# Committed study reports are kept even though they match the *_scan_report.md rule above
+!reports/**

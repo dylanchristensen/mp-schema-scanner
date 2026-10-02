@@ -1,0 +1,66 @@
+Gathering statistics from Unconstrained (healthcare Delivery scope 2)...
+  Unconstrained traces (N1): 729
+
+Gathering statistics from Constrained (healthcare Delivery scope 1)...
+  Constrained traces (N2): 36
+
+================================================================================
+PART 1: SINGLE STATE (MARGINAL) DEVIATIONS
+================================================================================
+Total states: 18, Bonferroni-corrected alpha: 0.002778, Critical z: 2.99
+
+Significant single-state deviations: 8 of 18
+  Suppressed: 4
+  Boosted:    4
+
+SUPPRESSED STATES (pruned or reduced in constrained model):
+--------------------------------------------------------------------------------------------------------------
+  Component          State                               Unconstrained %   Constrained %    z-score
+  ----------------------------------------------------------------------------------------------------------
+  physician          physician prescribing                       33.33%          0.00%      -4.19
+  pharmacy           pharmacy checking prescription              33.33%          0.00%      -4.19
+  pharmacy           pharmacy filling                            33.33%          0.00%      -4.19
+  insurance          claim denied                                33.33%          0.00%      -4.19
+
+BOOSTED STATES (forced or increased in constrained model):
+--------------------------------------------------------------------------------------------------------------
+  Component          State                               Unconstrained %   Constrained %    z-score
+  ----------------------------------------------------------------------------------------------------------
+  pharmacy           pharmacy closed                             33.33%        100.00%       8.11
+  physician          physician off duty                          33.33%         83.33%       6.11
+  insurance          claim pending                               33.33%         69.44%       4.43
+  patient            patient admitted                            33.33%         61.11%       3.42
+
+================================================================================
+PART 2: PAIRWISE (CO-OCCURRENCE) DEVIATIONS
+================================================================================
+Total pairs: 270, Bonferroni-corrected alpha: 0.000185, Critical z: 3.74
+
+Significant pairwise deviations: 22 of 270
+  Suppressed: 0
+  Boosted:    22
+
+TOP 20 MOST BOOSTED CO-OCCURRENCES:
+--------------------------------------------------------------------------------------------------------------
+  State X                          State Y                          Unconstrained %   Constrained %    z-score
+  ----------------------------------------------------------------------------------------------------------
+  physician off duty               pharmacy closed                          11.11%         83.33%      12.01
+  pharmacy closed                  physician off duty                       11.11%         83.33%      12.01
+  pharmacy closed                  claim pending                            11.11%         69.44%       9.89
+  claim pending                    pharmacy closed                          11.11%         69.44%       9.89
+  patient admitted                 pharmacy closed                          11.11%         61.11%       8.58
+  physician off duty               claim pending                            11.11%         61.11%       8.58
+  pharmacy closed                  patient admitted                         11.11%         61.11%       8.58
+  claim pending                    physician off duty                       11.11%         61.11%       8.58
+  ehr system down                  pharmacy closed                          11.11%         47.22%       6.33
+  pharmacy closed                  ehr system down                          11.11%         47.22%       6.33
+  patient admitted                 physician off duty                       11.11%         44.44%       5.87
+  physician off duty               patient admitted                         11.11%         44.44%       5.87
+  device powered off               pharmacy closed                          11.11%         38.89%       4.93
+  device recalibrating             pharmacy closed                          11.11%         38.89%       4.93
+  pharmacy closed                  device powered off                       11.11%         38.89%       4.93
+  pharmacy closed                  device recalibrating                     11.11%         38.89%       4.93
+  patient admitted                 ehr system down                          11.11%         33.33%       3.98
+  device powered off               physician off duty                       11.11%         33.33%       3.98
+  device recalibrating             physician off duty                       11.11%         33.33%       3.98
+  ehr system down                  patient admitted                         11.11%         33.33%       3.98

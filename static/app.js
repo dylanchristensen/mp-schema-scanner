@@ -7,6 +7,7 @@
     tracesFile: null,
     exampleSchema: null,
     exampleTraces: null,
+    currentData: null,
   };
 
   function setSchemaName(name) {
@@ -15,6 +16,61 @@
   function setTracesName(name) {
     $("traces-name").textContent = name || "no file";
   }
+
+  // Load OpenRouter models
+  async function loadModels() {
+    try {
+      const resp = await fetch("https://openrouter.ai/api/v1/models");
+      const data = await resp.json();
+      const select = $("sme-model");
+      if (!select) return;
+      select.innerHTML = "";
+      
+      const models = data.data;
+      const freeModels = models.filter(m => m.pricing && m.pricing.prompt === "0" && m.pricing.completion === "0");
+      const paidModels = models.filter(m => !(m.pricing && m.pricing.prompt === "0" && m.pricing.completion === "0"));
+      
+      freeModels.sort((a, b) => a.name.localeCompare(b.name));
+      paidModels.sort((a, b) => a.name.localeCompare(b.name));
+      
+      const freeGroup = document.createElement("optgroup");
+      freeGroup.label = "Free Models";
+      for (const m of freeModels) {
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.textContent = m.name + " (" + m.id + ")";
+        if (m.id.includes("llama-3.1-8b-instruct:free") || m.id.includes("liquid/lfm-40b:free")) {
+          opt.selected = true;
+        }
+        freeGroup.append(opt);
+      }
+      select.append(freeGroup);
+      
+      const paidGroup = document.createElement("optgroup");
+      paidGroup.label = "Paid Models";
+      for (const m of paidModels) {
+        let costStr = "";
+        if (m.pricing) {
+           const pt = parseFloat(m.pricing.prompt) * 1000000;
+           const ct = parseFloat(m.pricing.completion) * 1000000;
+           costStr = ` - $${pt.toFixed(2)}/$${ct.toFixed(2)} per 1M`;
+        }
+        const opt = document.createElement("option");
+        opt.value = m.id;
+        opt.textContent = m.name + costStr;
+        paidGroup.append(opt);
+      }
+      select.append(paidGroup);
+    } catch (e) {
+      console.error("Failed to load models", e);
+      const select = $("sme-model");
+      if (select) {
+         select.innerHTML = "<option>Error loading models</option>";
+      }
+    }
+  }
+
+  loadModels();
 
   // File pickers (also clear example selection).
   $("schema-file").addEventListener("change", (e) => {
@@ -149,8 +205,11 @@
   }
 
   function render(data) {
+    state.currentData = data;
     const r = $("results");
     r.classList.remove("hidden");
+    const ec = document.querySelector(".export-controls");
+    if (ec) ec.style.display = "flex";
 
     // Summary cards.
     const summary = $("summary");
@@ -189,9 +248,9 @@
     const findings = $("findings");
     findings.innerHTML = "";
     const shapeNames = {
-      A: "Shape A -- vacuous-foreach gaps",
-      B: "Shape B -- symmetric REJECT completion",
-      C: "Shape C -- optional-event escalation",
+      A: "Flag: Vacuous-satisfaction (Pattern A: vacuous-foreach gaps)",
+      B: "Flag: Co-occurrence anomaly (Pattern B: symmetric REJECT completion)",
+      C: "Flag: Co-occurrence anomaly (Pattern C: optional-event escalation)",
     };
     for (const shape of ["A", "B", "C"]) {
       const cands = data.candidates[shape];
@@ -268,19 +327,104 @@
           )
         );
         for (const s of c.evidence.sample) {
-          det.append(
-            el(
+          const traceStr = fmtTraceStates(s.states);
+          const askBtn = el("button", { class: "ask-sme-btn" }, "Ask AI SME");
+          const resultDiv = el("div", { class: "sme-result hidden" });
+          
+          askBtn.addEventListener("click", async () => {
+             askBtn.disabled = true;
+             askBtn.textContent = "Asking...";
+             resultDiv.classList.add("hidden");
+             resultDiv.innerHTML = "";
+             
+             try {
+                const domain = document.getElementById("sme-domain") ? document.getElementById("sme-domain").value : "Systems Architecture";
+                const apiKey = document.getElementById("sme-api-key") ? document.getElementById("sme-api-key").value : "";
+                const model = document.getElementById("sme-model") ? document.getElementById("sme-model").value : "meta-llama/llama-3.1-8b-instruct:free";
+                
+                const resp = await fetch("/api/ask_sme", {
+                   method: "POST",
+                   headers: { "Content-Type": "application/json" },
+                   body: JSON.stringify({ trace: traceStr, domain: domain, api_key: apiKey, model: model })
+                });
+                const data = await resp.json();
+                if (!resp.ok) throw new Error(data.error || "Unknown error");
+                
+                if (typeof marked !== "undefined") {
+                   c.sme_result = data.result;
+                   resultDiv.innerHTML = "<strong>AI SME Adjudication:</strong><br/>" + marked.parse(data.result);
+                } else {
+                   c.sme_result = data.result;
+                   resultDiv.innerHTML = "<strong>AI SME Adjudication:</strong><br/><pre>" + data.result + "</pre>";
+                }
+                resultDiv.classList.remove("hidden");
+             } catch (e) {
+                resultDiv.textContent = "Error: " + e;
+                resultDiv.classList.remove("hidden");
+             } finally {
+                askBtn.disabled = false;
+                askBtn.textContent = "Ask AI SME";
+             }
+          });
+
+          const sampleDiv = el(
               "div",
               { class: "sample" },
               el("span", { class: "tid" }, "#" + s.trace_id),
-              fmtTraceStates(s.states)
-            )
+              el("span", { class: "trace-text" }, traceStr),
+              askBtn,
+              resultDiv
           );
+          det.append(sampleDiv);
         }
         ev.append(det);
       }
       div.append(ev);
     }
     return div;
+  }
+
+  const exportShapeNames = {
+    A: "Flag: Vacuous-satisfaction (Pattern A: vacuous-foreach gaps)",
+    B: "Flag: Co-occurrence anomaly (Pattern B: symmetric REJECT completion)",
+    C: "Flag: Co-occurrence anomaly (Pattern C: optional-event escalation)",
+  };
+
+  const btnExportMd = $("btn-export-md");
+  if (btnExportMd) {
+    btnExportMd.addEventListener("click", () => {
+      if (!state.currentData) return;
+      let md = "# Scanner Findings Report\n\n";
+      for (const shape of ["A", "B", "C"]) {
+        const cands = state.currentData.candidates[shape];
+        if (!cands || cands.length === 0) continue;
+        md += `## ${exportShapeNames[shape]}\n\n`;
+        cands.forEach((c, i) => {
+          md += `### Pattern ${shape}${i + 1}\n`;
+          md += `**Rationale:** ${c.rationale}\n\n`;
+          md += `**Suggested Rule:** \`IF ${c.suggested_reject}; FI;\`\n\n`;
+          if (c.evidence) {
+            md += `**Violation Rate:** ${c.evidence.violation_count} of ${c.evidence.trace_count} traces (${fmtRate(c.evidence.violation_rate)})\n\n`;
+          }
+          if (c.sme_result) {
+            md += `> [!NOTE]\n> **AI SME Adjudication:**\n> ${c.sme_result.split('\\n').join('\\n> ')}\n\n`;
+          } else {
+            md += `*No AI SME adjudication requested.*\n\n`;
+          }
+        });
+      }
+      const blob = new Blob([md], { type: "text/markdown" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "scanner_report.md";
+      a.click();
+    });
+  }
+
+  const btnExportPdf = $("btn-export-pdf");
+  if (btnExportPdf) {
+    btnExportPdf.addEventListener("click", () => {
+      window.print();
+    });
   }
 })();

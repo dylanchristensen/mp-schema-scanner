@@ -52,7 +52,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='mp-scanner',
+    name='mp-scanner-iag',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
