@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CHIMERA co-occurrence anomaly flag — paper configuration (Section 4/7).
+"""CHIMERA co-occurrence anomaly flag — paper configuration.
 
 Replicates the published criterion on a trace_states_constrained DB:
   * family = unordered cross-component state pairs, both states support>0

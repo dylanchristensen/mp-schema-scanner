@@ -1,6 +1,6 @@
 ## INSuRE+C Schema Scanner
 
-Schema:  D:\Research\NSA INSuRE+C\Summer\Models + Writeups\Maritime Port\Maritime_Port_Logistics_Composed.mp
+Schema:  Maritime_Port_Logistics_Composed.mp
 Traces:  (none provided)
 States:  36  Orderings: 4  REJECTs: 12
 

@@ -15,8 +15,9 @@ Implements the semantics the paper's closed-form checks established:
     delete traces and are ignored for counting.
 
 Validated against the MP (Firebird) ground truth for the healthcare
-(729 -> 36), smart-home (57,600 -> 18,080), and maritime pre-weather
-(172,800 -> 45,836) models before use on new models.
+(729 -> 36), smart-home (57,600 -> 18,080), and 12-REJECT maritime
+(172,800 -> 45,836) models before use on new models. It also reproduces
+the 15-REJECT maritime count (38,348).
 
 Usage:
   python3 mp_enumerate.py <model.mp>            # counts + dead states

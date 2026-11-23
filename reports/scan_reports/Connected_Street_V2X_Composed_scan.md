@@ -1,6 +1,6 @@
 ## INSuRE+C Schema Scanner
 
-Schema:  D:\Research\NSA INSuRE+C\Summer\Models + Writeups\Smart Street\Connected_Street_V2X_Composed.mp
+Schema:  Connected_Street_V2X_Composed.mp
 Traces:  (none provided)
 States:  32  Orderings: 6  REJECTs: 12
 
