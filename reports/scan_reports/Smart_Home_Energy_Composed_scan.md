@@ -1,6 +1,6 @@
 ## INSuRE+C Schema Scanner
 
-Schema:  D:\Research\NSA INSuRE+C\Summer\Models + Writeups\Smart Home\Smart_Home_Energy_Composed.mp
+Schema:  Smart_Home_Energy_Composed.mp
 Traces:  (none provided)
 States:  30  Orderings: 3  REJECTs: 14
 

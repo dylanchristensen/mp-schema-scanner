@@ -1,6 +1,6 @@
 ## INSuRE+C Schema Scanner
 
-Schema:  D:\Research\NSA INSuRE+C\Summer\Models + Writeups\ATC\ATC_System_Composed.mp
+Schema:  ATC_System_Composed.mp
 Traces:  (none provided)
 States:  49  Orderings: 9  REJECTs: 28
 

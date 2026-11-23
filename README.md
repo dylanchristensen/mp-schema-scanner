@@ -143,7 +143,7 @@ mp-schema-scanner/
     healthcareDelivery_corrected.mp     # canonical mature schema
     healthcareDelivery_scope_1.gry      # constrained traces (36)
     healthcareDelivery_scope_2.gry      # unconstrained traces (676)
-    Smart_Home_Energy_Composed.mp       # draft SoS schema
+    Smart_Home_Energy_Composed.mp       # smart-home SoS schema
   pipeline/               # enumerator, .gry parser, co-occurrence flag, run_model
   analysis/               # exploratory scripts; legacy/ has the spring per-model parsers
   models/                 # all nine MP schemas in the study + README of counts
@@ -188,12 +188,12 @@ A1. Ordering 'vitals_recorded BEFORE records_current' is vacuously
 
 ## Status
 
-Working draft. Detector tuning is calibrated against the healthcare
-schema (mature; recovers known implicit #1 and #2) and the smart-home
-schema (draft; surfaces 8 candidates including the
-`battery_discharging`, HEMS-mode, and `demand_response_event`
-patterns). Trace-evidence layer is the only feature added since the
-CLI prototype.
+Research prototype. Detector tuning is calibrated against the healthcare
+schema (recovers known implicit #1 and #2) and the smart-home schema
+(surfaces 8 candidates including the `battery_discharging`, HEMS-mode,
+and `demand_response_event` patterns). The enumerator, co-occurrence
+pipeline, and assumption-graph builder added since the CLI prototype are
+described under "Pipeline, models, and reports" below.
 
 ## Roadmap
 
@@ -208,7 +208,7 @@ CLI prototype.
 
 ## License
 
-TBD (research artifact; internal NSA INSuRE+C use for now).
+To be determined.
 
 ## Pipeline, models, and reports
 

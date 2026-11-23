@@ -1,6 +1,6 @@
 ## INSuRE+C Schema Scanner
 
-Schema:  D:\Research\NSA INSuRE+C\Summer\Models + Writeups\SCADA\Power_Grid_SCADA_Composed.mp
+Schema:  Power_Grid_SCADA_Composed.mp
 Traces:  (none provided)
 States:  31  Orderings: 4  REJECTs: 9
 

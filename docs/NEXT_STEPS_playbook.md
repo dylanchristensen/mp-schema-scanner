@@ -1,4 +1,4 @@
-# Next Step: the SME-in-the-loop iteration (worked on Smart Home, template for all models)
+# Next Step: the SME review iteration (worked on Smart Home, template for all models)
 
 The pipeline produces a *candidate set*. The next step is the loop that turns
 candidates into either schema fixes or recorded emergent behaviors. Smart home
